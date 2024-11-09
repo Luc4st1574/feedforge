@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'profile.dart';
+import 'comment.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -45,10 +46,12 @@ class _HomeState extends State<Home> {
                         style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8), // Reduced space
                     _buildChartsGrid(),
+                    const SizedBox(height: 8), // Reduced space between chart and averages
+                    _buildAverageIndicators(),
                     const Divider(),
-                    const SizedBox(height: 8), // Added space to bring comments closer
+                    const SizedBox(height: 8), // Reduced space before comments section
                     const Text(
                       'Comments',
                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
@@ -106,7 +109,7 @@ class _HomeState extends State<Home> {
 
   Widget _buildChartsGrid() {
     return SizedBox(
-      height: 400, // Adjust height to control the square shape
+      height: 350, // Adjusted height for more compact layout
       child: GridView.count(
         crossAxisCount: 2,
         crossAxisSpacing: 16,
@@ -123,98 +126,172 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildBarChart(String fieldName) {
-  return SizedBox(
-    width: double.infinity,
-    height: double.infinity,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          fieldName,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+    return SizedBox(
+      width: double.infinity,
+      height: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            fieldName,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('Negocios')
-                .where('Negocio', isEqualTo: FirebaseAuth.instance.currentUser!.displayName)
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
+          const SizedBox(height: 8),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('Negocios')
+                  .where('Negocio', isEqualTo: FirebaseAuth.instance.currentUser!.displayName)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              List<BarChartGroupData> barGroups = [];
-              for (int i = 0; i < snapshot.data!.docs.length; i++) {
-                final doc = snapshot.data!.docs[i];
-                barGroups.add(
-                  BarChartGroupData(
-                    x: i, // Espacio más reducido entre barras
-                    barRods: [
-                      BarChartRodData(
-                        toY: double.parse(doc[fieldName].toString()),
-                        color: _getDynamicColor(i), // Color diferente para cada barra
-                        width: 15, // Ajuste de ancho de barra para mejor visibilidad
-                        borderRadius: BorderRadius.zero, // Bordes cuadrados
+                List<BarChartGroupData> barGroups = [];
+                for (int i = 0; i < snapshot.data!.docs.length; i++) {
+                  final doc = snapshot.data!.docs[i];
+                  barGroups.add(
+                    BarChartGroupData(
+                      x: i,
+                      barRods: [
+                        BarChartRodData(
+                          toY: double.parse(doc[fieldName].toString()),
+                          color: _getDynamicColor(i),
+                          width: 15,
+                          borderRadius: BorderRadius.zero,
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return BarChart(
+                  BarChartData(
+                    barGroups: barGroups,
+                    titlesData: FlTitlesData(
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 28,
+                          interval: 2,
+                          getTitlesWidget: (value, meta) {
+                            return Text(
+                              value.toInt().toString(),
+                              style: const TextStyle(color: Colors.black, fontSize: 10),
+                            );
+                          },
+                        ),
                       ),
-                    ],
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            return const Text('');
+                          },
+                        ),
+                      ),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    barTouchData: BarTouchData(enabled: false),
+                    alignment: BarChartAlignment.spaceEvenly,
+                    maxY: 10,
                   ),
                 );
-              }
-
-              return BarChart(
-                BarChartData(
-                  barGroups: barGroups,
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 28,
-                        interval: 2,
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            value.toInt().toString(),
-                            style: const TextStyle(color: Colors.black, fontSize: 10),
-                          );
-                        },
-                      ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          // Puedes agregar títulos personalizados si es necesario
-                          return const Text('');
-                        },
-                      ),
-                    ),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  barTouchData: BarTouchData(enabled: false),
-                  alignment: BarChartAlignment.spaceEvenly, // Distribución equilibrada de las barras
-                  maxY: 10, // Escala ajustada al valor máximo esperado
-                ),
-              );
-            },
+              },
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
-Color _getDynamicColor(int index) {
-  // Asignar colores diferentes según el índice
-  List<Color> colors = [Colors.blue, Colors.green, Colors.orange, Colors.red, Colors.purple, Colors.yellow];
-  return colors[index % colors.length];
-}
+  Color _getDynamicColor(int index) {
+    List<Color> colors = [Colors.blue, Colors.green, Colors.orange, Colors.red, Colors.purple, Colors.yellow];
+    return colors[index % colors.length];
+  }
 
-Widget _buildCommentsSection() {
+  Widget _buildAverageIndicators() {
+    final user = FirebaseAuth.instance.currentUser;
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('Negocios')
+          .where('Negocio', isEqualTo: user!.displayName)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('No data available.'));
+        }
+
+        double calculateAverage(String field) {
+          final values = snapshot.data!.docs.map((doc) => double.parse(doc[field].toString())).toList();
+          final sum = values.reduce((a, b) => a + b);
+          return sum / values.length;
+        }
+
+        final ambienteAvg = calculateAverage('Ambiente');
+        final calidadAvg = calculateAverage('Calidad');
+        final recomendacionAvg = calculateAverage('Recomendacion');
+        final servicioAvg = calculateAverage('Servicio');
+
+        return SizedBox(
+          height: 180, // Adjusted height to reduce gap
+          child: GridView.count(
+            crossAxisCount: 2,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: 2,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              _buildAverageBox('Ambiente', ambienteAvg),
+              _buildAverageBox('Calidad', calidadAvg),
+              _buildAverageBox('Recomendacion', recomendacionAvg),
+              _buildAverageBox('Servicio', servicioAvg),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAverageBox(String fieldName, double average) {
+    return Container(
+      padding: const EdgeInsets.all(12), // Reduced padding for compactness
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            fieldName,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${(average * 10).toStringAsFixed(1)}%',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCommentsSection() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || user.displayName == null) return const SizedBox.shrink();
 
@@ -237,7 +314,7 @@ Widget _buildCommentsSection() {
           children: comments.map((comment) {
             final feedback = comment['Feedback'];
             if (displayedFeedback.contains(feedback)) {
-              return const SizedBox.shrink(); // Ignore duplicate comments
+              return const SizedBox.shrink();
             }
             displayedFeedback.add(feedback);
 
@@ -245,31 +322,44 @@ Widget _buildCommentsSection() {
               alignment: comment['Nombre'] == user.displayName
                   ? Alignment.centerRight
                   : Alignment.centerLeft,
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: comment['Nombre'] == user.displayName
-                      ? Colors.lightBlueAccent.withOpacity(0.3)
-                      : Colors.yellowAccent.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${comment['Nombre']} (${comment['Numero']})',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.black87,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CommentScreen(
+                        initialComment: feedback,
+                        commentId: comment.id,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      feedback,
-                      style: const TextStyle(color: Colors.black, fontSize: 16),
-                    ),
-                  ],
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: comment['Nombre'] == user.displayName
+                        ? Colors.lightBlueAccent.withOpacity(0.3)
+                        : Colors.yellowAccent.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${comment['Nombre']} (${comment['Numero']})',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        feedback,
+                        style: const TextStyle(color: Colors.black, fontSize: 16),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
