@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'profile.dart';
 import 'comment.dart';
+import 'datacharts.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -46,12 +47,12 @@ class _HomeState extends State<Home> {
                         style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                     ),
-                    const SizedBox(height: 8), // Reduced space
+                    const SizedBox(height: 8),
                     _buildChartsGrid(),
-                    const SizedBox(height: 8), // Reduced space between chart and averages
+                    const SizedBox(height: 8),
                     _buildAverageIndicators(),
                     const Divider(),
-                    const SizedBox(height: 8), // Reduced space before comments section
+                    const SizedBox(height: 8),
                     const Text(
                       'Comments',
                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
@@ -109,7 +110,7 @@ class _HomeState extends State<Home> {
 
   Widget _buildChartsGrid() {
     return SizedBox(
-      height: 350, // Adjusted height for more compact layout
+      height: 350,
       child: GridView.count(
         crossAxisCount: 2,
         crossAxisSpacing: 16,
@@ -126,86 +127,96 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildBarChart(String fieldName) {
-    return SizedBox(
-      width: double.infinity,
-      height: double.infinity,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            fieldName,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DataChartScreen(fieldName: fieldName),
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('Negocios')
-                  .where('Negocio', isEqualTo: FirebaseAuth.instance.currentUser!.displayName)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+        );
+      },
+      child: SizedBox(
+        width: double.infinity,
+        height: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              fieldName,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('Negocios')
+                    .where('Negocio', isEqualTo: FirebaseAuth.instance.currentUser!.displayName)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                List<BarChartGroupData> barGroups = [];
-                for (int i = 0; i < snapshot.data!.docs.length; i++) {
-                  final doc = snapshot.data!.docs[i];
-                  barGroups.add(
-                    BarChartGroupData(
-                      x: i,
-                      barRods: [
-                        BarChartRodData(
-                          toY: double.parse(doc[fieldName].toString()),
-                          color: _getDynamicColor(i),
-                          width: 15,
-                          borderRadius: BorderRadius.zero,
+                  List<BarChartGroupData> barGroups = [];
+                  for (int i = 0; i < snapshot.data!.docs.length; i++) {
+                    final doc = snapshot.data!.docs[i];
+                    barGroups.add(
+                      BarChartGroupData(
+                        x: i,
+                        barRods: [
+                          BarChartRodData(
+                            toY: double.parse(doc[fieldName].toString()),
+                            color: _getDynamicColor(i),
+                            width: 15,
+                            borderRadius: BorderRadius.zero,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return BarChart(
+                    BarChartData(
+                      barGroups: barGroups,
+                      titlesData: FlTitlesData(
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 28,
+                            interval: 2,
+                            getTitlesWidget: (value, meta) {
+                              return Text(
+                                value.toInt().toString(),
+                                style: const TextStyle(color: Colors.black, fontSize: 10),
+                              );
+                            },
+                          ),
                         ),
-                      ],
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              return const Text('');
+                            },
+                          ),
+                        ),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      barTouchData: BarTouchData(enabled: false),
+                      alignment: BarChartAlignment.spaceEvenly,
+                      maxY: 10,
                     ),
                   );
-                }
-
-                return BarChart(
-                  BarChartData(
-                    barGroups: barGroups,
-                    titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 28,
-                          interval: 2,
-                          getTitlesWidget: (value, meta) {
-                            return Text(
-                              value.toInt().toString(),
-                              style: const TextStyle(color: Colors.black, fontSize: 10),
-                            );
-                          },
-                        ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: (value, meta) {
-                            return const Text('');
-                          },
-                        ),
-                      ),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    barTouchData: BarTouchData(enabled: false),
-                    alignment: BarChartAlignment.spaceEvenly,
-                    maxY: 10,
-                  ),
-                );
-              },
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -240,7 +251,7 @@ class _HomeState extends State<Home> {
         final servicioAvg = calculateAverage('Servicio');
 
         return SizedBox(
-          height: 180, // Adjusted height to reduce gap
+          height: 180,
           child: GridView.count(
             crossAxisCount: 2,
             crossAxisSpacing: 8,
@@ -261,7 +272,7 @@ class _HomeState extends State<Home> {
 
   Widget _buildAverageBox(String fieldName, double average) {
     return Container(
-      padding: const EdgeInsets.all(12), // Reduced padding for compactness
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -309,6 +320,9 @@ class _HomeState extends State<Home> {
           return const Text('No comments available.');
         }
 
+        // Clear the set each time new data is fetched to avoid duplicate checking issues
+        displayedFeedback.clear();
+
         final comments = snapshot.data!.docs;
         return Column(
           children: comments.map((comment) {
@@ -329,7 +343,7 @@ class _HomeState extends State<Home> {
                     MaterialPageRoute(
                       builder: (context) => CommentScreen(
                         initialComment: feedback,
-                        commentId: comment.id,
+                        commentId: comment.id, // Pass comment ID
                       ),
                     ),
                   );
@@ -340,7 +354,7 @@ class _HomeState extends State<Home> {
                   decoration: BoxDecoration(
                     color: comment['Nombre'] == user.displayName
                         ? Colors.lightBlueAccent.withOpacity(0.3)
-                        : Colors.yellowAccent.withOpacity(0.3),
+                        : Colors.grey.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Column(
