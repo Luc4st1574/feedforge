@@ -13,7 +13,7 @@
 
 ## Try Our Whattsapp Bot
 
-- 
+ForgeBOT
 
 <p align="center">
   <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/qr%20code.jpg" alt="logo" width="300">
