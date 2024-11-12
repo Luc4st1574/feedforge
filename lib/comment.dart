@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ChatMessage {
   final String message;
@@ -42,10 +43,14 @@ class _CommentScreenState extends State<CommentScreen> {
   }
 
   Future<void> _initializeGemini() async {
+    final geminikey = dotenv.env['GEMINI_KEY'];
+    if (geminikey == null) {
+      throw Exception('GEMINI_KEY is not set in the environment variables');
+    }
     try {
       model = GenerativeModel(
         model: "gemini-pro",
-        apiKey: "AIzaSyCoj6sHGnhExnDLVi7vZ0H_vMj6I4GFijc", // Replace with your actual API key
+        apiKey: geminikey, // Replace with your actual API key
       );
       session = model?.startChat();
 
