@@ -19,13 +19,14 @@
   </ul>
 </div>
 
-<p align="start">
-  <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/qr%20code.jpg" alt="logo" width="300">
-</p>
-
-<p align="end">
-  <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/qr%20code.jpg" alt="logo" width="300">
-</p>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <p>
+    <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/forge%20bot.png" alt="logo" width="300">
+  </p>
+  <p>
+    <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/qr%20code.jpg" alt="logo" width="300">
+  </p>
+</div>
 
 <div id="user-content-toc">
   <ul align="start">
