@@ -11,18 +11,17 @@
   </ul>
 </div>
 
-<div id="user-content-toc">
-  <ul align="start">
-    <summary><h2 style="display: inline-block">feedFORGE 🔥 is a feedback app, designed to give a the user a simple and interactive way to get its clients feedback, be able to get all the posible solutions from our ai integrated bot for comment management and it with our user dashboard with ai integrations the user will see its metrics and it will get recomendations with the power of ai</h2></summary>
-  </ul>
-</div>
-
 ## Getting Started
 
 <p align="center">
   <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/feedFORGE.png" alt="logo" width="700">
 </p>
 
+<div id="user-content-toc">
+  <ul align="start">
+    <summary><h2 style="display: inline-block">feedFORGE 🔥 is a feedback app, designed to give a the user a simple and interactive way to get its clients feedback, be able to get all the posible solutions from our ai integrated bot for comment management and it with our user dashboard with ai integrations the user will see its metrics and it will get recomendations with the power of ai</h2></summary>
+  </ul>
+</div>
 
 ## Try Our Whattsapp Bot
 
