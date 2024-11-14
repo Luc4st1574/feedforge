@@ -25,9 +25,9 @@
 </div>
 
 <p align="center">
-  <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/forge%20bot.png" alt="logo" width="300">
+  <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/forgebot.png" alt="logo" width="300">
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/qr%20code.jpg" alt="logo" width="300">
+  <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/qr_code.jpg" alt="logo" width="300">
 </p>
 
 <div id="user-content-toc">
