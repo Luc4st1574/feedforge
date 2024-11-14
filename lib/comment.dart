@@ -27,7 +27,7 @@ class _CommentScreenState extends State<CommentScreen> {
   ChatSession? session;
   bool _isInitialized = false;
   bool _isLoadingResponse = false;
-  
+
   final List<ChatMessage> _messages = [];
 
   @override
@@ -50,14 +50,35 @@ class _CommentScreenState extends State<CommentScreen> {
     try {
       model = GenerativeModel(
         model: "gemini-pro",
-        apiKey: geminikey, // Replace with your actual API key
+        apiKey: geminikey,
       );
       session = model?.startChat();
+
+      await _sendToGemini(
+          "You are Forge Bot, the AI assistant inside this app that gives users analytics of their clients and feedback. Keep responses focused and clear.");
 
       setState(() => _isInitialized = true);
 
       if (widget.initialComment.isNotEmpty) {
-        await _sendToGemini(widget.initialComment, initialMessage: true);
+        setState(() {
+          _messages.add(ChatMessage(message: widget.initialComment, isGemini: false));
+        });
+
+        setState(() {
+          _isLoadingResponse = true;
+        });
+
+        try {
+          final geminiResponse = await _sendToGemini(widget.initialComment);
+          setState(() => _messages.add(ChatMessage(message: geminiResponse, isGemini: true)));
+        } catch (e) {
+          debugPrint('Error sending initial comment: $e');
+          if (mounted) {
+            _showErrorSnackbar('Failed to send initial comment. Please try again.');
+          }
+        } finally {
+          setState(() => _isLoadingResponse = false);
+        }
       }
     } catch (e) {
       debugPrint('Error initializing Gemini: $e');
@@ -91,16 +112,13 @@ class _CommentScreenState extends State<CommentScreen> {
     }
   }
 
-  Future<String> _sendToGemini(String message, {bool initialMessage = false}) async {
+  Future<String> _sendToGemini(String message) async {
     if (session == null) {
       return "AI service is not yet initialized.";
     }
 
     try {
-      final prompt = initialMessage 
-          ? "Initial comment: $message" 
-          : "Initial comment: ${widget.initialComment}\nUser message: $message";
-      final response = await session!.sendMessage(Content.text(prompt));
+      final response = await session!.sendMessage(Content.text(message));
       return response.text ?? "Error: No response text.";
     } catch (e) {
       debugPrint('Error sending message to Gemini: $e');
@@ -133,9 +151,11 @@ class _CommentScreenState extends State<CommentScreen> {
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
-          title: const Text('AI Powered Chat', style: TextStyle(color: Colors.white)),
+          title: const Text('AI Powered Chat', style: TextStyle(color: Color(0xFFFF8700))),
         ),
-        body: Container(
+        body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Container(
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
@@ -145,70 +165,99 @@ class _CommentScreenState extends State<CommentScreen> {
           ),
           child: Column(
             children: [
-              _buildInitialComment(),
-              const Divider(),
-              _buildMessageList(),
+              Flexible(child: _buildMessageList()),
               if (_isLoadingResponse) _buildLoadingIndicator(),
               _buildMessageInput(),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildInitialComment() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          widget.initialComment,
-          style: const TextStyle(fontSize: 16, color: Colors.black),
-        ),
-      ),
+  Widget _buildMessageList() {
+    if (_messages.isEmpty) {
+      return const Center(child: Text('No messages yet. Start the conversation!'));
+    }
+
+    return ListView.builder(
+      reverse: true,
+      itemCount: _messages.length,
+      itemBuilder: (context, index) {
+        final message = _messages[_messages.length - 1 - index];
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: message.isGemini ? MainAxisAlignment.start : MainAxisAlignment.end,
+          children: [
+            if (message.isGemini) _buildBotAvatar(),
+            _buildMessageBubble(message),
+            if (!message.isGemini) _buildUserAvatar(),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildMessageList() {
-    return Expanded(
-      child: _messages.isEmpty
-          ? const Center(child: Text('No messages yet. Start the conversation!'))
-          : ListView.builder(
-              reverse: true,
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[_messages.length - 1 - index];
-                return ListTile(
-                  title: Text(
-                    message.isGemini ? 'Gemini' : 'You',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: message.isGemini ? Colors.blue : Colors.black,
-                    ),
-                  ),
-                  subtitle: Container(
-                    margin: const EdgeInsets.only(top: 4),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: message.isGemini 
-                          ? Colors.blue.withOpacity(0.2) 
-                          : Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      message.message,
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                  ),
-                );
-              },
+  Widget _buildUserAvatar() {
+  return const Padding(
+    padding: EdgeInsets.only(right: 8.0, top: 4.0), // Added padding to right and top
+    child: CircleAvatar(
+      radius: 20,
+      backgroundColor: Colors.blueAccent,
+      child: Icon(Icons.person, color: Colors.white, size: 20),
+    ),
+  );
+}
+
+  Widget _buildBotAvatar() {
+  return Padding(
+    padding: const EdgeInsets.only(left: 8.0, top: 10.0),
+    child: CircleAvatar(
+      radius: 22,
+      backgroundColor: const Color(0xFFFF8700).withOpacity(0.2),
+      child: const CircleAvatar(
+        radius: 20,
+        backgroundImage: AssetImage('assets/images/forgebot.png'), // Using the 'forgebot' image
+        backgroundColor: Colors.transparent,
+      ),
+    ),
+  );
+}
+
+
+  Widget _buildMessageBubble(ChatMessage message) {
+    return Flexible(
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: message.isGemini ? const Color(0xFFFF8700).withOpacity(0.2) : Colors.blue.withOpacity(0.1),
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(12),
+            topRight: const Radius.circular(12),
+            bottomLeft: message.isGemini ? Radius.zero : const Radius.circular(12),
+            bottomRight: message.isGemini ? const Radius.circular(12) : Radius.zero,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: message.isGemini ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+          children: [
+            Text(
+              message.isGemini ? 'Forge Bot' : 'You',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: message.isGemini ? const Color.fromARGB(255, 196, 88, 0) : Colors.black,
+              ),
             ),
+            const SizedBox(height: 4),
+            Text(
+              message.message,
+              style: const TextStyle(color: Colors.black),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -222,46 +271,42 @@ class _CommentScreenState extends State<CommentScreen> {
   }
 
   Widget _buildMessageInput() {
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _messageController,
-            enabled: _isInitialized && !_isLoadingResponse,
-            style: const TextStyle(color: Colors.black), // Set text color to black
-            decoration: InputDecoration(
-              hintText: _isInitialized 
-                  ? 'Type your message...'
-                  : 'Initializing AI...',
-              hintStyle: const TextStyle(color: Colors.black),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Colors.blue),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _messageController,
+              enabled: _isInitialized && !_isLoadingResponse,
+              style: const TextStyle(color: Colors.black),
+              decoration: InputDecoration(
+                hintText: _isInitialized ? 'Type your message...' : 'Initializing AI...',
+                hintStyle: const TextStyle(color: Colors.black),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: const BorderSide(color: Colors.blue),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        IconButton(
-          icon: _isLoadingResponse
-              ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.send, color: Colors.blue),
-          onPressed: _isInitialized && !_isLoadingResponse 
-              ? _sendMessage 
-              : null,
-        ),
-      ],
-    ),
-  );
+          const SizedBox(width: 8),
+          IconButton(
+            icon: _isLoadingResponse
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.send, color: Color(0xFFFF8700)),
+            onPressed: _isInitialized && !_isLoadingResponse ? _sendMessage : null,
+          ),
+        ],
+      ),
+    );
   }
 }
