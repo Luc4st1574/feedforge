@@ -80,7 +80,7 @@ class _HomeState extends State<Home> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Image.asset('assets/images/logo_alt.png', height: 70),
+              Image.asset('assets/images/logo.png', height: 80),
               GestureDetector(
                 onTap: () {
                   Navigator.push(
