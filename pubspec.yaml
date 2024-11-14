@@ -74,6 +74,7 @@ flutter:
   - assets/images/logo_alt.png
   - assets/images/google_logo.png
   - .env
+  - assets/images/forgebot.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
