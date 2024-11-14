@@ -13,6 +13,13 @@
 
 ## Award Winner Project
 
+<p align="center">
+  <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/ayni.svg" alt="logo" width="200">
+</p>
+
+<p align="center">
+  <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/reward.jpg" alt="logo" width="150">
+</p>
 
 
 ## Try Our Whattsapp Bot
