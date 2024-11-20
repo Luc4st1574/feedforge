@@ -90,13 +90,22 @@ class _HomeState extends State<Home> {
                 },
                 child: Column(
                   children: [
-                    const Icon(Icons.account_circle, color: Color(0xFFFF8700), size: 50),
+                    user?.photoURL != null
+                        ? CircleAvatar(
+                            backgroundImage: NetworkImage(user!.photoURL!),
+                            radius: 25,
+                          )
+                        : const Icon(
+                            Icons.account_circle,
+                            color: Color(0xFFFF8700),
+                            size: 50,
+                          ),
                     const SizedBox(height: 4),
                     Text(
                       user != null
                           ? (user.displayName ?? user.email ?? 'User')
                           : 'Guest',
-                      style: const TextStyle(color: Colors.black, fontSize: 15),
+                      style: const TextStyle(color: Color(0xFFFF8700), fontSize: 18),
                     ),
                   ],
                 ),
@@ -107,7 +116,6 @@ class _HomeState extends State<Home> {
       },
     );
   }
-
   Widget _buildChartsGrid() {
     return SizedBox(
       height: 350,

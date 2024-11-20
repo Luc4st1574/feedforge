@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -200,15 +201,20 @@ class _CommentScreenState extends State<CommentScreen> {
   }
 
   Widget _buildUserAvatar() {
-  return const Padding(
-    padding: EdgeInsets.only(right: 8.0, top: 4.0), // Added padding to right and top
-    child: CircleAvatar(
-      radius: 20,
-      backgroundColor: Colors.blueAccent,
-      child: Icon(Icons.person, color: Colors.white, size: 20),
-    ),
-  );
-}
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0, top: 4.0), // Adjust padding as needed
+      child: CircleAvatar(
+        radius: 20,
+        backgroundImage: FirebaseAuth.instance.currentUser?.photoURL != null
+            ? NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!) // Google profile picture
+            : null, // No icon overlay if there's a profile picture
+        backgroundColor: Colors.blueAccent, // Background color if no profile picture
+        child: FirebaseAuth.instance.currentUser?.photoURL == null
+            ? const Icon(Icons.person, color: Colors.white, size: 20) // Default user icon
+            : null, // No child if a profile picture exists
+      ),
+    );
+  }
 
   Widget _buildBotAvatar() {
   return Padding(

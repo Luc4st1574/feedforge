@@ -1,7 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'services/auth_service.dart';
+import 'home.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -19,7 +21,7 @@ class SignupState extends State<Signup> {
   Future<void> _handleGoogleSignIn(BuildContext context) async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return;
+      if (googleUser == null) return; // User canceled the sign-in
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
@@ -28,14 +30,52 @@ class SignupState extends State<Signup> {
       );
 
       await FirebaseAuth.instance.signInWithCredential(credential);
-      // Navigate to home screen or perform any other action after successful registration
+
+      // Navigate to Home if sign-in is successful
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Google Sign-In successful!')),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Home()),
+      );
     } catch (e) {
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to sign in with Google: $e')),
       );
     }
   }
+
+  Future<void> _handleEmailSignup(BuildContext context) async {
+    try {
+      await AuthService().signup(
+        userName: _usernameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+        context: context,
+      );
+
+      // Navigate to Home after successful signup
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Home()),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Signup successful!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to sign up: $e')),
+      );
+    }
+  }
+
 
   @override
   void dispose() {
@@ -147,14 +187,7 @@ class SignupState extends State<Signup> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () async {
-          await AuthService().signup(
-            userName: _usernameController.text,
-            email: _emailController.text,
-            password: _passwordController.text,
-            context: context,
-          );
-        },
+        onPressed: () async => await _handleEmailSignup(context),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF708291),
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),

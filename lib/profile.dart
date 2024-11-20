@@ -33,11 +33,17 @@ class ProfileState extends State<Profile> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const CircleAvatar(
-                radius: 50,
-                backgroundColor: Color(0xFFFF8700),
-                child: Icon(Icons.person, size: 50, color: Colors.black),
-              ),
+              // Display Google profile picture if available, otherwise default icon
+              user?.photoURL != null
+                  ? CircleAvatar(
+                      radius: 50,
+                      backgroundImage: NetworkImage(user!.photoURL!),
+                    )
+                  : const CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Color(0xFFFF8700),
+                      child: Icon(Icons.person, size: 50, color: Colors.black),
+                    ),
               const SizedBox(height: 16),
               Text(
                 user?.displayName ?? 'User',
@@ -49,7 +55,6 @@ class ProfileState extends State<Profile> {
               _buildPasswordTile(),
               const SizedBox(height: 32),
 
-              // Align buttons in a single Column with Expanded for equal width
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -144,7 +149,7 @@ class ProfileState extends State<Profile> {
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFFFF8700),
         padding: const EdgeInsets.symmetric(vertical: 12),
-        minimumSize: const Size(double.infinity, 50), // Set button to take full available width
+        minimumSize: const Size(double.infinity, 50),
       ),
     );
   }
