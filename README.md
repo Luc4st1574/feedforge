@@ -61,5 +61,10 @@
   </ul>
 </div>
 
+<p align="center">
+  <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/integrations.png" alt="logo" width="700">
+</p>
+
+
 
 
