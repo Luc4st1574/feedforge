@@ -52,3 +52,14 @@
 <p align="center">
   <img src="https://github.com/Luc4st1574/feedforge/blob/main/assets/images/reward.jpg" alt="logo" width="300">
 </p>
+
+## APP TECNOLOGY AND INTEGRATIONS
+
+<div id="user-content-toc">
+  <ul align="start">
+    <summary><h2 style="display: inline-block">This app integrates a lot a services, firstly of all it includes a bot hosted in aws, with an ubuntu instance running a python script that uses a api from chat gpt to manage our user clients input and the whattsapp bot send all the data to google sheets, where with apps script we get our update data in realtime to cloud firestore where it is processed and displayed inside the app where there is also a gemini integration where you are able to get instant meesages using the user clients feedback as direct prompt to a trained gemini integration for the user</h2></summary>
+  </ul>
+</div>
+
+
+
